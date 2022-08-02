@@ -1,0 +1,95 @@
+ivec
+-------------------------------------------
+|        |   max-input  |   power of 10   |
+-------------------------------------------
+|   hwx  |     5600     |      3.69       |
+-------------------------------------------
+|   opt   |    70000    |      4.84       |
+-------------------------------------------
+|   sys   |   8000000   |      5.90       |
+-------------------------------------------
+
+
+list
+-------------------------------------------
+|        |   max-input  |   power of 10   |
+-------------------------------------------
+|   hwx  |     1800     |      3.25       |
+-------------------------------------------
+|   opt   |    18000    |      4.25       |
+-------------------------------------------
+|   sys   |    400000   |      5.60       |
+-------------------------------------------
+
+
++-------+-------------+------------+-------------+------------+
+| Input | Ivec - Hw   | Ivec - Opt | List - Hw   | List - Opt |
++=======|=============|============|=============|============+
+| 5600  | 3.69 s      | 0.54s      | --          | --         |
+| 1800  | --          | --         | 9.780s      | 0.083s     |
++-------|-------------|------------|-------------|------------+
+
+optimized allocator runs faster than hwx allocator significantly.
+Running time reduced by 85% and 99% for ivec and list when comparing
+optimized and hwx allocator. This somehow indicates the inefficiency
+of the  simple free-list design, with linear-time malloc and free.
+
+
++--------|------------|------------|------------|------------+
+| Input  | Ivec - Sys | Ivec - Opt | List - Sys | List - Opt |
++========|============|============|============|============+
+| 18000  | --         | --         | 0.291s     | 9.889s     |
+| 700000 | 0.383s     | 9.734 s    | --         | --         |
++--------|------------|------------|------------|------------+
+system allocator runs faster than optimized allocator. System allocator
+reduces running time by 96% and 97% for ivec and list.
+
+
+### Optimized Allocator design
+
+The allocator is block-based with multiple arenas. A block of data is the
+piece of free-list data at the beginning of an allocation. The data
+structure is defined as an array of free lists. (BUCKETS of them). Within
+each block there is the size of that allocation, the index of the arena in
+arenas and next block. We only traverse the free list as a singly linked list.
+
+
+### Thread-local Arenas
+
+This allocator handles parallelization using multiple arenas. Each
+thread is assigned an arena, and all of its malloc calls will he
+handled by that arena. There are a fixed number of arenas of 4. If there
+are more threads than arenas, two threads will share an arena. In arena
+struct, we store the indices of these free_lists match up with the indices
+of our global array, and a lock used when modifying the data structure.
+
+Free calls are handled by whatever arena made the original allocation.
+
+
+### Memory Re-use
+
+When allocating, we check the freelist before optimization. if the list is
+empty, then we need more free spaces. Stack is used to check whether freelist
+is "out of order". We fix the last one and it is pointing out of man
+After freelist can be created to allocate to. Then we pop the freelist off
+the stack.
+
+## Challenge
+
+The most significant challenge in building this allocator is fixing bugs.
+Since we first get in touch with such data structure, and the way of optimizing
+and allocating, We ran into different problems. Some times it takes several
+hours to fix a single line of bad pointer arithmetic. Those bugs leads to
+'realloc' incorrectly calculating the size of the existing allocation and the
+proper arena index in the thread. We haven't figured out an efficient way to
+locate the part that goes wrong yet.
+
+### Reflection on Redo Assignment
+
+We would likely use the same general allocator design. Buckets are fast,
+with constant-time `malloc` and `free`. Multiple arenas makes the function
+simpler and more flexible than simple free-list design. Although out optimized 
+allocator did fall short of its goal, and doesn't perform very well when
+comparing with system allocator. It still owns an edge compared with our
+previous homework. It more time are given, we could improve the
+allocator to the point that it would beat the system allocator.

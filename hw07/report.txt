@@ -1,0 +1,64 @@
+Local:
+Operating System: Debian GNU/Linux 10
+Processor model: Intel Core i7-7820HQ @ 2x 2.904GHz
+Number of processor cores: 2
+Amount of RAM: 2037M
+
+Server:
+Operating System: Cent OS
+Processor model: Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz
+Number of processor cores: 24
+Amount of RAM: 196G
+
+Local:
++----+------------+------------+------------+------------+------------+
+|  P | Test 1     | Test 2     |  Test 3    |  median    |  speedup   |
++----+------------+------------+------------+------------+------------+
+| 1  | 9.828s     | 9.442s     | 9.693s     | 9.442s     |  1         |
+| 4  | 6.839s     | 5.993s     | 6.364s     | 6.364s     |  1.523     |
+| 8  | 6.202s     | 6.539s     | 6.244s     | 6.244s     |  1.552     |
++----+------------+------------+------------+------------+------------+
+
+Server:
++----+------------+------------+------------+------------+------------+
+|  P | Test 1     | Test 2     |  Test 3    |  median    |  speedup   |
++----+------------+------------+------------+------------+------------+
+| 1  | 14.078s    | 14.281s    | 14.271s    | 14.271s    |  1         |
+| 4  | 8.749s     | 7.723s     | 6.708s     | 7.723s     |  1.847     |
+| 8  | 5.118s     | 5.337s     | 5.252s     | 5.252s     |  2.717     |
++----+------------+------------+------------+------------+------------+
+
+According to the table above, the overall running time will decrease when
+the total number of threads increased. Such result is because we are using
+multiple threads to split up the work and run at the same time which will
+boost up the speed. The difference between local machine and server is probably
+due to the difference in number of cores and GHz performance. Since my local
+has a 2.904GHz performance, this will allows one thread to run faster than
+the server side. However since server has 24 processor cores and local only has
+2, this will boost up the speed of server faster than local if we are using
+more threads.
+
+Below is result for mmap version.The overall result is similar,
+however, result for 1 process for thread version is way faster than
+mmap version on both local and server side. I think is because threads
+share memory with the same process, which thread communication is faster
+than process communication, however, as we have more process, sharing between
+process will be harder for thread when using shared memory, since it will be
+complex to do so. 
+Local:
++----+------------+------------+------------+------------+------------+
+|  P | Test 1     | Test 2     |  Test 3    |  median    |  speedup   |
++----+------------+------------+------------+------------+------------+
+| 1  | 15.208s    | 15.382s    | 15.529s    | 15.382s    |  1         |
+| 4  | 6.514s     | 6.555s     | 6.782s     | 6.555s     |  2.35      |
+| 8  | 6.132s     | 6.286s     | 6.881s     | 6.286s     |  2.45      |
++----+------------+------------+------------+------------+------------+
+
+Server:
++----+------------+------------+------------+------------+------------+
+|  P | Test 1     | Test 2     |  Test 3    |  median    |  speedup   |
++----+------------+------------+------------+------------+------------+
+| 1  | 16.303s    | 16.401s    | 16.723s    | 16.401s    |  1         |
+| 4  | 8.720s     | 8.716s     | 10.463s    | 8.720s     |  1.88      |
+| 8  | 4.528s     | 3.066s     | 4.432s     | 4.432s     |  3.70      |
++----+------------+------------+------------+------------+------------+

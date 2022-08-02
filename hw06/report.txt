@@ -1,0 +1,48 @@
+Local:
+Operating System: Debian GNU/Linux 10
+Processor model: Intel Core i7-7820HQ @ 2x 2.904GHz
+Number of processor cores: 2
+Amount of RAM: 2037M
+
+Server:
+Operating System: Cent OS
+Processor model: Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz
+Number of processor cores: 24
+Amount of RAM: 196G
+
+Local:
++----+------------+------------+------------+------------+------------+
+|  P | Test 1     | Test 2     |  Test 3    |  median    |  speedup   |
++----+------------+------------+------------+------------+------------+
+| 1  | 15.208s    | 15.382s    | 15.529s    | 15.382s    |  1         |
+| 4  | 6.514s     | 6.555s     | 6.782s     | 6.555s     |  2.35      |
+| 8  | 6.132s     | 6.286s     | 6.881s     | 6.286s     |  2.45      |
++----+------------+------------+------------+------------+------------+
+
+Server:
++----+------------+------------+------------+------------+------------+
+|  P | Test 1     | Test 2     |  Test 3    |  median    |  speedup   |
++----+------------+------------+------------+------------+------------+
+| 1  | 16.303s    | 16.401s    | 16.723s    | 16.401s    |  1         |
+| 4  | 8.720s     | 8.716s     | 10.463s    | 8.720s     |  1.88      |
+| 8  | 4.528s     | 3.066s     | 4.432s     | 4.432s     |  3.70      |
++----+------------+------------+------------+------------+------------+
+
+According to the table above, the overall running time will decrease when
+the total number of process increased. Such result is because we are using
+multiple process to split up the work and run at the same time which will
+boost up the speed. The difference between local machine and server is probably
+due to the difference in number of cores and GHz performance. Since my local
+has a 2.904GHz performance, this will allows one process to run faster than
+the server side. However since server has 24 processor cores and local only has
+2, this will boost up the speed of server way faster than local if we are using
+more processes.
+
+
+Amdahl's law is dealing with problem that has a fixed workload and code with
+fixed calculation time. Gustafson's law is dealing with problem
+that has large workload with multiple parallel processes do maintain fixed
+running time. Sample sort uses the idea of Gustafson's law that enables
+multiple process to run the program to makes it run faster. This can be used
+in machines like CCIS server that has multiple process cores, but may not be
+good idea for server like local machines that only has 2-4 process cores. 
